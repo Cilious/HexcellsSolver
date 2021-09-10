@@ -142,7 +142,7 @@ if SAVE_IMAGES:
 
 
 def measure_shape(screenshot: np.array, x: int, y: int, shape: set[(int, int)]):
-    if screenshot[y, x] > WHITE_THRESHOLD and (x, y) not in shape:
+    if screenshot[y, x] >= WHITE_THRESHOLD and (x, y) not in shape:
         shape.add((x, y))
         measure_shape(screenshot=screenshot, x=x + 1, y=y, shape=shape)
         measure_shape(screenshot=screenshot, x=x - 1, y=y, shape=shape)
@@ -152,7 +152,7 @@ def measure_shape(screenshot: np.array, x: int, y: int, shape: set[(int, int)]):
 
 
 def check_pixel_for_shape(screenshot: np.array, x: int, y: int, shapes: list[set[(int, int)]]):
-    if screenshot[y, x] > WHITE_THRESHOLD:
+    if screenshot[y, x] >= WHITE_THRESHOLD:
         known = False
         for shape in shapes:
             if (x, y) in shape:
