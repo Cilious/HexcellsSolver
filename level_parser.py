@@ -176,6 +176,7 @@ def check_pixel_for_shape(screenshot: np.array, x: int, y: int, shapes: list[set
 
 
 def find_number_information(shapes: list[set[(int, int)]], rotation_correction: int = 0):
+    # Sometimes small groups of pixels make their way into the list of shapes
     for shape in shapes:
         if len(shape) < 5:
             shapes.remove(shape)
