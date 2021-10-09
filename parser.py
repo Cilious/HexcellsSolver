@@ -102,30 +102,39 @@ def find_shape_measures(shape: set[(int, int)]):
     return x_min, y_min, x_max - x_min + 1, y_max - y_min + 1
 
 
-def identify_connectivity_type(shape: set[(int, int)], rotation_correction: int = 0):
-    _, _, x_size, y_size = find_shape_measures(shape=shape)
-    # TODO: find reliable solution (eg. disjointed 2 in 11092021)
-    if rotation_correction % 180 == 0:
-        if y_size > x_size:
-            return ConnectivityType.CONNECTED
-        else:
-            return ConnectivityType.DISJOINTED
-    else:
-        if y_size > x_size:
-            return ConnectivityType.DISJOINTED
-        else:
-            return ConnectivityType.CONNECTED
-
-
-def identify_digit(shape: set[(int, int)], rotation_correction: int = 0):
+def image_from_shape(shape: set[(int, int)], rotation_correction: int = 0):
     x_start, y_start, x_size, y_size = find_shape_measures(shape=shape)
     digit = np.zeros(shape=(y_size, x_size))
     for (x, y) in shape:
         digit[y - y_start, x - x_start] = 1
 
-    image = Image.fromarray(np.uint8(np.multiply(digit, 255)), mode='L') \
-        .rotate(rotation_correction) \
-        .resize(size=(IMAGE_SIZE[1], IMAGE_SIZE[0]))
+    return Image.fromarray(np.uint8(np.multiply(digit, 255)), mode='L').rotate(rotation_correction)
+
+
+def identify_connectivity_type(shape: set[(int, int)], rotation_correction: int = 0):
+    connectivity_indicator = np.array(image_from_shape(shape=shape, rotation_correction=rotation_correction))
+    left = connectivity_indicator.shape[1]
+    right = 0
+    top = connectivity_indicator.shape[0]
+    bot = 0
+    for y in range(connectivity_indicator.shape[0]):
+        for x in range(connectivity_indicator.shape[1]):
+            if connectivity_indicator[y, x] == 1:
+                left = min(left, x)
+                right = max(right, x)
+                top = min(top, y)
+                bot = max(bot, y)
+
+    if right - left > bot - top:
+        return ConnectivityType.DISJOINTED
+    else:
+        return ConnectivityType.CONNECTED
+
+
+def identify_digit(shape: set[(int, int)], rotation_correction: int = 0):
+    image = image_from_shape(shape=shape, rotation_correction=rotation_correction)
+    image = image.resize(size=(IMAGE_SIZE[1], IMAGE_SIZE[0]))
+
     if SAVE_IMAGES:
         image.save(f"{TRAIN_DIRECTORY}/{identify_digit.image_id}.png")
         identify_digit.image_id += 1
