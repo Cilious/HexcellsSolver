@@ -219,6 +219,7 @@ def identify_cell(screenshot: np.array, x: int, y: int):
 
 def init_cells(screenshot: np.array, level: Level):
     cells = np.zeros((level.rows, level.cols), Cell)
+    gray_cells = 0
     x = level.left
     for col in range(level.cols):
         y = level.top
@@ -230,11 +231,13 @@ def init_cells(screenshot: np.array, level: Level):
             # sleep(0.5)
             if (x < X_SAFE_LIMIT or y > Y_SAFE_START) and x + y > UPPER_LEFT_DANGERZONE:
                 cells[row, col] = identify_cell(screenshot=screenshot, x=x, y=y)
+                if cells[row, col] is not None and cells[row, col].cell_type == CellType.GRAY:
+                    gray_cells += 1
             else:
                 cells[row, col] = None
             y += VERTICAL_FULL_DISTANCE
         x += HORIZONTAL_DISTANCE
-    return cells
+    return cells, gray_cells
 
 
 def find_direction(x: int, y: int, shapes: list[set[(int, int)]], potential_directions: list[LineDirection]):
@@ -420,7 +423,7 @@ def parse():
     level = Level(left=left, right=right, top=top, bot=bot, rows=rows, cols=cols, blue_remaining=blue_remaining,
                   horizontal_distance=HORIZONTAL_DISTANCE, vertical_full_distance=VERTICAL_FULL_DISTANCE,
                   vertical_half_distance=VERTICAL_HALF_DISTANCE)
-    level.cells = init_cells(screenshot=screenshot, level=level)
+    level.cells, level.gray_cells = init_cells(screenshot=screenshot, level=level)
     level.lines = init_lines(screenshot=screenshot, level=level)
     return level
 
