@@ -78,8 +78,8 @@ class Level:
         return x, y
 
     def __str__(self):
-        meta_data = f"left={self.left}, right={self.right}, top={self.top}, " \
-                    f"bot={self.bot}, rows={self.rows}, cols={self.cols}, remaining={self.blue_remaining}\n"
+        meta_data = f"left={self.left}, right={self.right}, top={self.top}, bot={self.bot}, rows={self.rows}, " \
+                    f"cols={self.cols}, remaining={self.blue_remaining}, gray_cells={self.gray_cells}\n"
 
         cells = ""
         for row in range(self.rows):

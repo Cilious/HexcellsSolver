@@ -17,7 +17,7 @@ LOGO_DIRECTORY = "hexcells_logo"
 ORANGE = 185
 GRAY = 62
 BLUE = 125
-WHITE_THRESHOLD = 240
+WHITE_THRESHOLD = 238
 BACKGROUND_THRESHOLD = 60
 HORIZONTAL_DISTANCE = 55
 VERTICAL_HALF_DISTANCE = 31
@@ -103,17 +103,19 @@ def find_shape_measures(shape: set[(int, int)]):
     return x_min, y_min, x_max - x_min + 1, y_max - y_min + 1
 
 
-def image_from_shape(shape: set[(int, int)], rotation_correction: int = 0):
+def image_from_shape(shape: set[(int, int)]):
     x_start, y_start, x_size, y_size = find_shape_measures(shape=shape)
     digit = np.zeros(shape=(y_size, x_size))
     for (x, y) in shape:
         digit[y - y_start, x - x_start] = 255
 
-    return Image.fromarray(np.uint8(digit), mode='L').rotate(rotation_correction)
+    return Image.fromarray(np.uint8(digit), mode='L')
 
 
 def identify_connectivity_type(shape: set[(int, int)], rotation_correction: int = 0):
-    connectivity_indicator = np.array(image_from_shape(shape=shape, rotation_correction=rotation_correction))
+    image = image_from_shape(shape=shape)
+    image = image.resize(size=(max(image.size), max(image.size))).rotate(angle=rotation_correction)
+    connectivity_indicator = np.array(image)
     left = connectivity_indicator.shape[1]
     right = 0
     top = connectivity_indicator.shape[0]
@@ -126,15 +128,15 @@ def identify_connectivity_type(shape: set[(int, int)], rotation_correction: int 
                 top = min(top, y)
                 bot = max(bot, y)
 
-    if right - left > bot - top:
+    if right - left >= bot - top:
         return ConnectivityType.DISJOINTED
     else:
         return ConnectivityType.CONNECTED
 
 
 def identify_digit(shape: set[(int, int)], rotation_correction: int = 0):
-    image = image_from_shape(shape=shape, rotation_correction=rotation_correction)
-    image = image.resize(size=(IMAGE_SIZE[1], IMAGE_SIZE[0]))
+    image = image_from_shape(shape=shape)
+    image = image.resize(size=(IMAGE_SIZE[1], IMAGE_SIZE[0])).rotate(angle=rotation_correction)
 
     if SAVE_IMAGES:
         image.save(f"{TRAIN_DIRECTORY}/{identify_digit.image_id}.png")
@@ -424,7 +426,7 @@ def grab_level(region=None):
         pag.click(pag.center(hexcells_location))
         pic = pag.screenshot(region=region).convert('L')
         # TODO: remove
-        # pic.save('test6.png')
+        pic.save('test7.png')
         return np.array(pic)
     except pag.ImageNotFoundException:
         print("Hexcells is not open")
