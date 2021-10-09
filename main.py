@@ -1,4 +1,4 @@
-from parser import parse, HexcellsLogoNotFoundException
+from level_parser import parse, HexcellsLogoNotFoundException
 
 
 """

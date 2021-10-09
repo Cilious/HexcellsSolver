@@ -2,6 +2,7 @@
 Module takes a screenshot of a hexcells level and parses it into
 the needed representation
 """
+import time
 
 import numpy as np
 import pyautogui as pag
@@ -106,9 +107,9 @@ def image_from_shape(shape: set[(int, int)], rotation_correction: int = 0):
     x_start, y_start, x_size, y_size = find_shape_measures(shape=shape)
     digit = np.zeros(shape=(y_size, x_size))
     for (x, y) in shape:
-        digit[y - y_start, x - x_start] = 1
+        digit[y - y_start, x - x_start] = 255
 
-    return Image.fromarray(np.uint8(np.multiply(digit, 255)), mode='L').rotate(rotation_correction)
+    return Image.fromarray(np.uint8(digit), mode='L').rotate(rotation_correction)
 
 
 def identify_connectivity_type(shape: set[(int, int)], rotation_correction: int = 0):
@@ -119,7 +120,7 @@ def identify_connectivity_type(shape: set[(int, int)], rotation_correction: int 
     bot = 0
     for y in range(connectivity_indicator.shape[0]):
         for x in range(connectivity_indicator.shape[1]):
-            if connectivity_indicator[y, x] == 1:
+            if connectivity_indicator[y, x] > 100:  # grayscale 0-255, some random threshold
                 left = min(left, x)
                 right = max(right, x)
                 top = min(top, y)
@@ -175,6 +176,10 @@ def check_pixel_for_shape(screenshot: np.array, x: int, y: int, shapes: list[set
 
 
 def find_number_information(shapes: list[set[(int, int)]], rotation_correction: int = 0):
+    for shape in shapes:
+        if len(shape) < 5:
+            shapes.remove(shape)
+
     number = None
     connectivity_type = ConnectivityType.UNKNOWN
     if len(shapes) == 1:  # one digit
@@ -418,7 +423,7 @@ def grab_level(region=None):
         pag.click(pag.center(hexcells_location))
         pic = pag.screenshot(region=region).convert('L')
         # TODO: remove
-        # pic.save('test5.png')
+        # pic.save('test6.png')
         return np.array(pic)
     except pag.ImageNotFoundException:
         print("Hexcells is not open")
