@@ -114,8 +114,13 @@ def image_from_shape(shape: set[(int, int)]):
 
 def identify_connectivity_type(shape: set[(int, int)], rotation_correction: int = 0):
     image = image_from_shape(shape=shape)
-    image = image.resize(size=(max(image.size), max(image.size))).rotate(angle=rotation_correction)
-    connectivity_indicator = np.array(image)
+    new_size = max(image.size)
+    y_offset = int((new_size - image.size[0]) / 2)
+    x_offset = int((new_size - image.size[1]) / 2)
+    padded_image = Image.new(mode=image.mode, size=(new_size, new_size), color=0)
+    padded_image.paste(im=image, box=(y_offset, x_offset))
+    connectivity_indicator = np.array(padded_image.rotate(angle=rotation_correction))
+
     left = connectivity_indicator.shape[1]
     right = 0
     top = connectivity_indicator.shape[0]
@@ -426,7 +431,7 @@ def grab_level(region=None):
         pag.click(pag.center(hexcells_location))
         pic = pag.screenshot(region=region).convert('L')
         # TODO: remove
-        pic.save('test7.png')
+        # pic.save('test7.png')
         return np.array(pic)
     except pag.ImageNotFoundException:
         print("Hexcells is not open")
