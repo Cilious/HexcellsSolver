@@ -1,4 +1,5 @@
-/digits
+/training_data
 /.idea
 /__pycache__
 test*
+training_csv_helper.py

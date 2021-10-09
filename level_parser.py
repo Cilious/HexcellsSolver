@@ -12,12 +12,13 @@ from PIL import Image
 from representation import Level, Cell, CellType, Line, LineDirection, ConnectivityType
 from number_classifier import classify_digit, IMAGE_SIZE, TRAIN_DIRECTORY
 
-SAVE_IMAGES = True
+SAVE_IMAGES = False
 LOGO_DIRECTORY = "hexcells_logo"
 ORANGE = 185
 GRAY = 62
 BLUE = 125
-WHITE_THRESHOLD = 238
+NO_SHAPE_THRESHOLD = 4
+WHITE_THRESHOLD = 233
 BACKGROUND_THRESHOLD = 60
 HORIZONTAL_DISTANCE = 55
 VERTICAL_HALF_DISTANCE = 31
@@ -103,23 +104,23 @@ def find_shape_measures(shape: set[(int, int)]):
     return x_min, y_min, x_max - x_min + 1, y_max - y_min + 1
 
 
-def image_from_shape(shape: set[(int, int)]):
+def image_from_shape(shape: set[(int, int)], rotation_correction: int = 0):
     x_start, y_start, x_size, y_size = find_shape_measures(shape=shape)
     digit = np.zeros(shape=(y_size, x_size))
     for (x, y) in shape:
         digit[y - y_start, x - x_start] = 255
 
-    return Image.fromarray(np.uint8(digit), mode='L')
-
-
-def identify_connectivity_type(shape: set[(int, int)], rotation_correction: int = 0):
-    image = image_from_shape(shape=shape)
+    image = Image.fromarray(np.uint8(digit), mode='L')
     new_size = max(image.size)
     y_offset = int((new_size - image.size[0]) / 2)
     x_offset = int((new_size - image.size[1]) / 2)
     padded_image = Image.new(mode=image.mode, size=(new_size, new_size), color=0)
     padded_image.paste(im=image, box=(y_offset, x_offset))
-    connectivity_indicator = np.array(padded_image.rotate(angle=rotation_correction))
+    return padded_image.rotate(angle=rotation_correction)
+
+
+def identify_connectivity_type(shape: set[(int, int)], rotation_correction: int = 0):
+    connectivity_indicator = np.array(image_from_shape(shape=shape, rotation_correction=rotation_correction))
 
     left = connectivity_indicator.shape[1]
     right = 0
@@ -140,8 +141,8 @@ def identify_connectivity_type(shape: set[(int, int)], rotation_correction: int 
 
 
 def identify_digit(shape: set[(int, int)], rotation_correction: int = 0):
-    image = image_from_shape(shape=shape)
-    image = image.resize(size=(IMAGE_SIZE[1], IMAGE_SIZE[0])).rotate(angle=rotation_correction)
+    image = image_from_shape(shape=shape, rotation_correction=rotation_correction)
+    image = image.resize(size=(IMAGE_SIZE[1], IMAGE_SIZE[0]))
 
     if SAVE_IMAGES:
         image.save(f"{TRAIN_DIRECTORY}/{identify_digit.image_id}.png")
@@ -167,7 +168,7 @@ def in_bounds(x, y):
 
 
 def measure_shape(screenshot: np.array, x: int, y: int, shape: set[(int, int)]):
-    if in_bounds(x, y) and screenshot[y, x] >= WHITE_THRESHOLD and (x, y) not in shape:
+    if X_START <= x < X_END and Y_START <= y < Y_END and screenshot[y, x] >= WHITE_THRESHOLD and (x, y) not in shape:
         shape.add((x, y))
         measure_shape(screenshot=screenshot, x=x + 1, y=y, shape=shape)
         measure_shape(screenshot=screenshot, x=x - 1, y=y, shape=shape)
@@ -177,7 +178,7 @@ def measure_shape(screenshot: np.array, x: int, y: int, shape: set[(int, int)]):
 
 
 def check_pixel_for_shape(screenshot: np.array, x: int, y: int, shapes: list[set[(int, int)]]):
-    if in_bounds(x, y) and screenshot[y, x] >= WHITE_THRESHOLD:
+    if X_START <= x < X_END and Y_START <= y < Y_END and screenshot[y, x] >= WHITE_THRESHOLD:
         known = False
         for shape in shapes:
             if (x, y) in shape:
@@ -192,7 +193,7 @@ def check_pixel_for_shape(screenshot: np.array, x: int, y: int, shapes: list[set
 def find_number_information(shapes: list[set[(int, int)]], rotation_correction: int = 0):
     # Sometimes small groups of pixels make their way into the list of shapes
     for shape in shapes:
-        if len(shape) < 5:
+        if len(shape) < NO_SHAPE_THRESHOLD:
             shapes.remove(shape)
 
     number = None
@@ -333,6 +334,8 @@ def init_lines(screenshot: np.array, level: Level):
         for col in range(-1, level.cols + 1):
             if row == -1 or row == level.rows or col == -1 or col == level.cols or level.cells[row, col] is None:
                 x, y = level.cell_coordinates(row=row, col=col)
+                if not in_bounds(x, y):
+                    continue
                 potential_directions = list()
                 if row < level.rows - 1 and 0 <= col < level.cols and level.cells[row + 1, col] is not None:
                     potential_directions.append(LineDirection.DOWN)
@@ -382,7 +385,7 @@ def find_blue_remaining(screenshot: np.array):
 
     y_temp = int((remaining_top_edge + 2 * remaining_bot_edge) / 3)
     shapes = list()
-    for x_temp in range(remaining_right_edge, remaining_left_edge):
+    for x_temp in range(remaining_right_edge, remaining_left_edge, -1):
         check_pixel_for_shape(screenshot=screenshot, x=x_temp, y=y_temp, shapes=shapes)
 
     blue_remaining = 0
@@ -438,7 +441,7 @@ def grab_level(region=None):
         pag.click(pag.center(hexcells_location))
         pic = pag.screenshot(region=region).convert('L')
         # TODO: remove
-        # pic.save('test7.png')
+        # pic.save('test8.png')
         return np.array(pic)
     except pag.ImageNotFoundException:
         print("Hexcells is not open")
