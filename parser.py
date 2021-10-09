@@ -104,6 +104,7 @@ def find_shape_measures(shape: set[(int, int)]):
 
 def identify_connectivity_type(shape: set[(int, int)], rotation_correction: int = 0):
     _, _, x_size, y_size = find_shape_measures(shape=shape)
+    # TODO: find reliable solution (eg. disjointed 2 in 11092021)
     if rotation_correction % 180 == 0:
         if y_size > x_size:
             return ConnectivityType.CONNECTED
@@ -335,6 +336,32 @@ def init_lines(screenshot: np.array, level: Level):
     return lines
 
 
+def find_blue_remaining(screenshot: np.array):
+    x = X_END
+    y = Y_START
+    while screenshot[y, x] != BLUE:
+        x -= 1
+        y += 1
+
+    remaining_left_edge = find_extremity(screenshot=screenshot[y, :], start=x, limit=X_START, step=-1)
+    remaining_right_edge = find_extremity(screenshot=screenshot[y, :], start=x, limit=X_END, step=1)
+    remaining_top_edge = find_extremity(screenshot=screenshot[:, x], start=y, limit=Y_START, step=-1)
+    remaining_bot_edge = find_extremity(screenshot=screenshot[:, x], start=y, limit=Y_END, step=1)
+
+    y_temp = int((remaining_top_edge + 2 * remaining_bot_edge) / 3)
+    shapes = list()
+    for x_temp in range(remaining_right_edge, remaining_left_edge):
+        check_pixel_for_shape(screenshot=screenshot, x=x_temp, y=y_temp, shapes=shapes)
+
+    blue_remaining = 0
+    factor = 1
+    for shape in shapes:
+        blue_remaining += factor * identify_digit(shape=shape)
+        factor *= 10
+
+    return blue_remaining
+
+
 def find_dimensions(screenshot: np.array):
     left, _ = find_left_edge(screenshot)
     right, _ = find_right_edge(screenshot)
@@ -389,7 +416,8 @@ def grab_level(region=None):
 def parse():
     screenshot = grab_level()
     left, right, top, bot, rows, cols = find_dimensions(screenshot=screenshot)
-    level = Level(left=left, right=right, top=top, bot=bot, rows=rows, cols=cols,
+    blue_remaining = find_blue_remaining(screenshot=screenshot)
+    level = Level(left=left, right=right, top=top, bot=bot, rows=rows, cols=cols, blue_remaining=blue_remaining,
                   horizontal_distance=HORIZONTAL_DISTANCE, vertical_full_distance=VERTICAL_FULL_DISTANCE,
                   vertical_half_distance=VERTICAL_HALF_DISTANCE)
     level.cells = init_cells(screenshot=screenshot, level=level)

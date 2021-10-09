@@ -1,4 +1,4 @@
-from scraper import parse, HexcellsLogoNotFoundException
+from parser import parse, HexcellsLogoNotFoundException
 
 
 """
