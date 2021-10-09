@@ -12,7 +12,7 @@ from PIL import Image
 from representation import Level, Cell, CellType, Line, LineDirection, ConnectivityType
 from number_classifier import classify_digit, IMAGE_SIZE, TRAIN_DIRECTORY
 
-SAVE_IMAGES = False
+SAVE_IMAGES = True
 LOGO_DIRECTORY = "hexcells_logo"
 ORANGE = 185
 GRAY = 62
@@ -159,8 +159,15 @@ if SAVE_IMAGES:
     identify_digit.image_id += 1
 
 
+def in_bounds(x, y):
+    return X_START <= x < X_END and\
+           Y_START <= y < Y_END and\
+           (x < X_SAFE_LIMIT or y > Y_SAFE_START) and\
+           x + y > UPPER_LEFT_DANGERZONE
+
+
 def measure_shape(screenshot: np.array, x: int, y: int, shape: set[(int, int)]):
-    if screenshot[y, x] >= WHITE_THRESHOLD and (x, y) not in shape:
+    if in_bounds(x, y) and screenshot[y, x] >= WHITE_THRESHOLD and (x, y) not in shape:
         shape.add((x, y))
         measure_shape(screenshot=screenshot, x=x + 1, y=y, shape=shape)
         measure_shape(screenshot=screenshot, x=x - 1, y=y, shape=shape)
@@ -170,7 +177,7 @@ def measure_shape(screenshot: np.array, x: int, y: int, shape: set[(int, int)]):
 
 
 def check_pixel_for_shape(screenshot: np.array, x: int, y: int, shapes: list[set[(int, int)]]):
-    if screenshot[y, x] >= WHITE_THRESHOLD:
+    if in_bounds(x, y) and screenshot[y, x] >= WHITE_THRESHOLD:
         known = False
         for shape in shapes:
             if (x, y) in shape:
