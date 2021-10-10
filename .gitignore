@@ -1,5 +1,5 @@
 /training_data
+/digit_classifier_nets
 /.idea
 /__pycache__
 test*
-training_csv_helper.py
