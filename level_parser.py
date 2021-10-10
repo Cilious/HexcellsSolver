@@ -448,8 +448,11 @@ def grab_level(region=None):
         exit(1)
 
 
-def parse():
-    screenshot = grab_level()
+def parse(image=None):
+    if image is None:
+        screenshot = grab_level()
+    else:
+        screenshot = np.array(Image.open(image))
     left, right, top, bot, rows, cols = find_dimensions(screenshot=screenshot)
     blue_remaining = find_blue_remaining(screenshot=screenshot)
     level = Level(left=left, right=right, top=top, bot=bot, rows=rows, cols=cols, blue_remaining=blue_remaining,
