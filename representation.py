@@ -55,7 +55,7 @@ class Line:
 class Level:
     def __init__(self, left: int, right: int, top: int, bot: int, rows: int, cols: int, blue_remaining: int,
                  horizontal_distance: int, vertical_full_distance: int, vertical_half_distance,
-                 gray_cells: int = 0, cells: array = None, lines: list[Line] = None):
+                 orange_cells: int = 0, cells: array = None, lines: list[Line] = None):
         self.left = left
         self.right = right
         self.top = top
@@ -66,7 +66,7 @@ class Level:
         self.horizontal_distance = horizontal_distance
         self.vertical_full_distance = vertical_full_distance
         self.vertical_half_distance = vertical_half_distance
-        self.gray_cells = gray_cells
+        self.orange_cells = orange_cells
         self.cells = cells
         self.lines = lines
 
@@ -79,7 +79,7 @@ class Level:
 
     def __str__(self):
         meta_data = f"left={self.left}, right={self.right}, top={self.top}, bot={self.bot}, rows={self.rows}, " \
-                    f"cols={self.cols}, remaining={self.blue_remaining}, gray_cells={self.gray_cells}\n"
+                    f"cols={self.cols}, remaining={self.blue_remaining}, gray_cells={self.orange_cells}\n"
 
         cells = ""
         for row in range(self.rows):
