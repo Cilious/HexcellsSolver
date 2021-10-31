@@ -441,7 +441,7 @@ def grab_level(region=None):
 
         pic = pag.screenshot(region=region).convert('L')
         # TODO: remove
-        # pic.save('test9.png')
+        pic.save('test1.png')
         return np.array(pic)
     except pag.ImageNotFoundException:
         print("Hexcells is not open")
