@@ -428,18 +428,23 @@ def find_dimensions(screenshot: np.array):
     return left, right, top, bot, rows, cols
 
 
+def open_hexcells():
+    hexcells_location = None
+    for filename in os.listdir(LOGO_DIRECTORY):
+        hexcells_location = pag.locateOnScreen(os.path.join(LOGO_DIRECTORY, filename))
+        if hexcells_location is not None:
+            break
+
+    if hexcells_location is None:
+        raise HexcellsLogoNotFoundException
+
+    pag.click(pag.center(hexcells_location))
+
+
 def grab_level(region=None):
     try:
-        hexcells_location = None
-        for filename in os.listdir(LOGO_DIRECTORY):
-            hexcells_location = pag.locateOnScreen(os.path.join(LOGO_DIRECTORY, filename))
-            if hexcells_location is not None:
-                break
+        open_hexcells()
 
-        if hexcells_location is None:
-            raise HexcellsLogoNotFoundException
-
-        pag.click(pag.center(hexcells_location))
         pic = pag.screenshot(region=region).convert('L')
         # TODO: remove
         # pic.save('test9.png')
