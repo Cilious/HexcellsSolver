@@ -22,7 +22,6 @@ WHITE_THRESHOLD = 233
 BACKGROUND_THRESHOLD = 60
 HORIZONTAL_DISTANCE = 55
 VERTICAL_HALF_DISTANCE = 31
-VERTICAL_FULL_DISTANCE = 62
 colours = [ORANGE, BLUE, GRAY]
 X_START = 0
 X_END = 1920 - 1
@@ -161,9 +160,9 @@ if SAVE_IMAGES:
 
 
 def in_bounds(x, y):
-    return X_START <= x < X_END and\
-           Y_START <= y < Y_END and\
-           (x < X_SAFE_LIMIT or y > Y_SAFE_START) and\
+    return X_START <= x < X_END and \
+           Y_START <= y < Y_END and \
+           (x < X_SAFE_LIMIT or y > Y_SAFE_START) and \
            x + y > UPPER_LEFT_DANGERZONE
 
 
@@ -201,13 +200,13 @@ def find_number_information(shapes: list[set[(int, int)]], rotation_correction: 
     if len(shapes) == 1:  # one digit
         number = identify_digit(shape=shapes[0], rotation_correction=rotation_correction)
     elif len(shapes) == 2:  # two digits
-        number = 10 * identify_digit(shape=shapes[0], rotation_correction=rotation_correction)\
+        number = 10 * identify_digit(shape=shapes[0], rotation_correction=rotation_correction) \
                  + identify_digit(shape=shapes[1], rotation_correction=rotation_correction)
     elif len(shapes) == 3:  # one digit and two connectivity markers
         number = identify_digit(shape=shapes[1], rotation_correction=rotation_correction)
         connectivity_type = identify_connectivity_type(shape=shapes[0], rotation_correction=rotation_correction)
     elif len(shapes) == 4:  # two digits and two connectivity markers
-        number = 10 * identify_digit(shape=shapes[1], rotation_correction=rotation_correction)\
+        number = 10 * identify_digit(shape=shapes[1], rotation_correction=rotation_correction) \
                  + identify_digit(shape=shapes[2], rotation_correction=rotation_correction)
         connectivity_type = identify_connectivity_type(shape=shapes[0], rotation_correction=rotation_correction)
     return number, connectivity_type
@@ -235,7 +234,7 @@ def identify_cell(screenshot: np.array, x: int, y: int):
     y_temp = y
     # Sometimes a number contains a pixel with the same grayscale value as number cells
     # TODO: find proper solution
-    while screenshot[y_temp, x] not in colours or screenshot[y_temp + 1, x] not in colours\
+    while screenshot[y_temp, x] not in colours or screenshot[y_temp + 1, x] not in colours \
             or screenshot[y_temp, x] != screenshot[y_temp + 1, x]:
         y_temp += 2
     colour = screenshot[y_temp, x]
@@ -255,7 +254,7 @@ def init_cells(screenshot: np.array, level: Level):
     for col in range(level.cols):
         y = level.top
         if col % 2 == 1:
-            y += VERTICAL_HALF_DISTANCE
+            y += level.vertical_half_distance
         for row in range(level.rows):
             # TODO: remove
             # pag.moveTo(x, y)
@@ -266,8 +265,8 @@ def init_cells(screenshot: np.array, level: Level):
                     orange_cells += 1
             else:
                 cells[row, col] = None
-            y += VERTICAL_FULL_DISTANCE
-        x += HORIZONTAL_DISTANCE
+            y += level.vertical_half_distance * 2
+        x += level.horizontal_distance
     return cells, orange_cells
 
 
@@ -296,8 +295,8 @@ def find_direction(x: int, y: int, shapes: list[set[(int, int)]], potential_dire
     return direction
 
 
-def check_line(screenshot: np.array, x: int, y: int, row: int, col: int, potential_directions: list[LineDirection]):
-    search_range = int(VERTICAL_FULL_DISTANCE * 0.35)
+def check_line(screenshot: np.array, level: Level, x: int, y: int, row: int, col: int, potential_directions: list[LineDirection]):
+    search_range = int(level.vertical_half_distance * 0.7)
     shapes = list()
     for y_search in range(y - search_range, y + search_range):
         for x_search in range(x - search_range, x + search_range):
@@ -365,7 +364,7 @@ def init_lines(screenshot: np.array, level: Level):
                         if row < level.rows - 1 and level.cells[row + 1, col + 1] is not None:
                             potential_directions.append(LineDirection.DOWN_RIGHT)
                 if len(potential_directions) > 0:
-                    line = check_line(screenshot=screenshot, x=x, y=y, row=row, col=col,
+                    line = check_line(screenshot=screenshot, level=level, x=x, y=y, row=row, col=col,
                                       potential_directions=potential_directions)
                     if line is not None:
                         lines.append(line)
@@ -398,34 +397,31 @@ def find_blue_remaining(screenshot: np.array):
     return blue_remaining
 
 
+def measure_cell(screenshot: np.ndarray, x: int, y: int):
+    return HORIZONTAL_DISTANCE, VERTICAL_HALF_DISTANCE
+
+
 def find_dimensions(screenshot: np.array):
     left, _ = find_left_edge(screenshot)
     right, _ = find_right_edge(screenshot)
     top_x, top = find_top_edge(screenshot)
     bot_x, bot = find_bot_edge(screenshot)
 
-    cols = round((right - left) / HORIZONTAL_DISTANCE) + 1
+    horizontal_distance, vertical_half_distance = measure_cell(screenshot=screenshot, x=top_x, y=top)
+
+    cols = round((right - left) / horizontal_distance) + 1
 
     # In the representation every second column is moved up half a cell
-    top_col = round((top_x - left) / HORIZONTAL_DISTANCE)
+    top_col = round((top_x - left) / horizontal_distance)
     if top_col % 2 == 1:
-        top -= VERTICAL_HALF_DISTANCE
-    bot_col = round((bot_x - left) / HORIZONTAL_DISTANCE)
+        top -= vertical_half_distance
+    bot_col = round((bot_x - left) / horizontal_distance)
     if bot_col % 2 == 1:
-        bot -= VERTICAL_HALF_DISTANCE
+        bot -= vertical_half_distance
 
-    rows = round((bot - top) / VERTICAL_FULL_DISTANCE) + 1
+    rows = round((bot - top) / (2 * vertical_half_distance)) + 1
 
-    # TODO: remove
-    """
-    if top_col % 2 == bot_col % 2:
-        rows = round((bot - top) / VERTICAL_FULL_DISTANCE) + 1
-    elif top_col % 2 == 0:
-        rows = int((bot - top) / VERTICAL_FULL_DISTANCE) + 1
-    else:
-        rows = int((bot - top) / VERTICAL_FULL_DISTANCE) + 2
-    """
-    return left, right, top, bot, rows, cols
+    return left, right, top, bot, rows, cols, vertical_half_distance, horizontal_distance
 
 
 def open_hexcells():
@@ -459,11 +455,11 @@ def parse(image=None):
         screenshot = grab_level()
     else:
         screenshot = np.array(Image.open(image))
-    left, right, top, bot, rows, cols = find_dimensions(screenshot=screenshot)
+    left, right, top, bot, rows, cols, vertical_half_distance, horizontal_distance = find_dimensions(
+        screenshot=screenshot)
     blue_remaining = find_blue_remaining(screenshot=screenshot)
     level = Level(left=left, right=right, top=top, bot=bot, rows=rows, cols=cols, blue_remaining=blue_remaining,
-                  horizontal_distance=HORIZONTAL_DISTANCE, vertical_full_distance=VERTICAL_FULL_DISTANCE,
-                  vertical_half_distance=VERTICAL_HALF_DISTANCE)
+                  horizontal_distance=horizontal_distance, vertical_half_distance=vertical_half_distance)
     level.cells, level.orange_cells = init_cells(screenshot=screenshot, level=level)
     level.lines = init_lines(screenshot=screenshot, level=level)
     return level

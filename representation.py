@@ -56,7 +56,7 @@ class Line:
 
 class Level:
     def __init__(self, left: int, right: int, top: int, bot: int, rows: int, cols: int, blue_remaining: int,
-                 horizontal_distance: int, vertical_full_distance: int, vertical_half_distance,
+                 horizontal_distance: int, vertical_half_distance,
                  orange_cells: int = 0, cells: array = None, lines: list[Line] = None):
         self.left: int = left
         self.right: int = right
@@ -66,7 +66,6 @@ class Level:
         self.cols: int = cols
         self.blue_remaining: int = blue_remaining
         self.horizontal_distance: int = horizontal_distance
-        self.vertical_full_distance: int = vertical_full_distance
         self.vertical_half_distance: int = vertical_half_distance
         self.orange_cells: int = orange_cells
         self.cells: array = cells
@@ -74,7 +73,7 @@ class Level:
 
     def cell_coordinates(self, row: int, col: int):
         x = self.left + self.horizontal_distance * col
-        y = self.top + self.vertical_full_distance * row
+        y = self.top + self.vertical_half_distance * 2 * row
         if col % 2 == 1:
             y += self.vertical_half_distance
         return x, y
