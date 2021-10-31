@@ -1,4 +1,6 @@
 from enum import Enum
+
+import numpy as np
 from numpy import array
 
 
@@ -16,9 +18,9 @@ class CellType(Enum):
 
 class Cell:
     def __init__(self, cell_type: CellType, connectivity_type: ConnectivityType, number: int = None):
-        self.cell_type = cell_type
-        self.number = number
-        self.connectivity_type = connectivity_type
+        self.cell_type: CellType = cell_type
+        self.number: int = number
+        self.connectivity_type: ConnectivityType = connectivity_type
 
     def __str__(self):
         return f"{['O', 'B', 'G', 'N'][self.cell_type.value]}" \
@@ -38,11 +40,11 @@ class LineDirection(Enum):
 class Line:
     def __init__(self, start_row: int, start_col: int, number: int,
                  connectivity_type: ConnectivityType, direction: LineDirection):
-        self.start_row = start_row
-        self.start_col = start_col
-        self.number = number
-        self.connectivity_type = connectivity_type
-        self.direction = direction
+        self.start_row: int = start_row
+        self.start_col: int = start_col
+        self.number: int = number
+        self.connectivity_type: ConnectivityType = connectivity_type
+        self.direction: LineDirection = direction
 
     def __str__(self):
         return f"{self.start_row}," \
@@ -56,19 +58,19 @@ class Level:
     def __init__(self, left: int, right: int, top: int, bot: int, rows: int, cols: int, blue_remaining: int,
                  horizontal_distance: int, vertical_full_distance: int, vertical_half_distance,
                  orange_cells: int = 0, cells: array = None, lines: list[Line] = None):
-        self.left = left
-        self.right = right
-        self.top = top
-        self.bot = bot
-        self.rows = rows
-        self.cols = cols
-        self.blue_remaining = blue_remaining
-        self.horizontal_distance = horizontal_distance
-        self.vertical_full_distance = vertical_full_distance
-        self.vertical_half_distance = vertical_half_distance
-        self.orange_cells = orange_cells
-        self.cells = cells
-        self.lines = lines
+        self.left: int = left
+        self.right: int = right
+        self.top: int = top
+        self.bot: int = bot
+        self.rows: int = rows
+        self.cols: int = cols
+        self.blue_remaining: int = blue_remaining
+        self.horizontal_distance: int = horizontal_distance
+        self.vertical_full_distance: int = vertical_full_distance
+        self.vertical_half_distance: int = vertical_half_distance
+        self.orange_cells: int = orange_cells
+        self.cells: array = cells
+        self.lines: list[Line] = lines
 
     def cell_coordinates(self, row: int, col: int):
         x = self.left + self.horizontal_distance * col

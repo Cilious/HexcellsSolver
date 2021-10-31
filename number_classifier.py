@@ -282,7 +282,7 @@ def classify_digit(digit: np.array):
 
 
 net = DigitClassifier()
-net.load_state_dict(torch.load(os.path.join(MODEL_DIR, "model_v" + str(VERSION) + ".pt")))
+net.load_state_dict(torch.load("classifier.pt"))
 
 
 if __name__ == "__main__":

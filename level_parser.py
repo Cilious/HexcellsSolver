@@ -235,8 +235,9 @@ def identify_cell(screenshot: np.array, x: int, y: int):
     y_temp = y
     # Sometimes a number contains a pixel with the same grayscale value as number cells
     # TODO: find proper solution
-    while not colours.__contains__(screenshot[y_temp, x]) or not colours.__contains__(screenshot[y_temp + 1, x]):
-        y_temp += 1
+    while screenshot[y_temp, x] not in colours or screenshot[y_temp + 1, x] not in colours\
+            or screenshot[y_temp, x] != screenshot[y_temp + 1, x]:
+        y_temp += 2
     colour = screenshot[y_temp, x]
     cell_type = CellType(colours.index(colour))
 
@@ -441,7 +442,7 @@ def grab_level(region=None):
         pag.click(pag.center(hexcells_location))
         pic = pag.screenshot(region=region).convert('L')
         # TODO: remove
-        # pic.save('test8.png')
+        # pic.save('test9.png')
         return np.array(pic)
     except pag.ImageNotFoundException:
         print("Hexcells is not open")
