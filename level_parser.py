@@ -37,14 +37,14 @@ Y_SAFE_START = int(Y_END * Y_DEADZONE)
 THIRTY_DEGREE_UNIT_VECTOR = (0.8944271909999159, 0.44721359549995804)
 
 
-def find_extremity(screenshot: np.array, start: int, limit: int, step: int):
+def find_extremity(screenshot: np.ndarray, start: int, limit: int, step: int):
     res = start
     while start != limit and screenshot[res + step] > BACKGROUND_THRESHOLD:
         res += step
     return res
 
 
-def center(screenshot: np.array, x: int, y: int):
+def center(screenshot: np.ndarray, x: int, y: int):
     x_bot = find_extremity(screenshot=screenshot[y, :], start=x, limit=X_START, step=-1)
     x_top = find_extremity(screenshot=screenshot[y, :], start=x, limit=X_END, step=1)
     x_center = int((x_bot + x_top) / 2)
@@ -54,7 +54,7 @@ def center(screenshot: np.array, x: int, y: int):
     return x_center, y_center
 
 
-def find_left_edge(screenshot: np.array):
+def find_left_edge(screenshot: np.ndarray):
     for x in range(X_START, X_END, SEARCH_STEP):
         for y in range(Y_START, Y_END, SEARCH_STEP):
             if x + y > UPPER_LEFT_DANGERZONE \
@@ -62,7 +62,7 @@ def find_left_edge(screenshot: np.array):
                 return center(screenshot=screenshot, x=x, y=y)
 
 
-def find_right_edge(screenshot: np.array):
+def find_right_edge(screenshot: np.ndarray):
     for x in range(X_END, X_START, -SEARCH_STEP):
         for y in range(Y_START, Y_END, SEARCH_STEP):
             if (x < X_SAFE_LIMIT or y > Y_SAFE_START) \
@@ -70,7 +70,7 @@ def find_right_edge(screenshot: np.array):
                 return center(screenshot=screenshot, x=x, y=y)
 
 
-def find_top_edge(screenshot: np.array):
+def find_top_edge(screenshot: np.ndarray):
     for y in range(Y_START, Y_END, SEARCH_STEP):
         for x in range(X_START, X_END, SEARCH_STEP):
             if x + y > UPPER_LEFT_DANGERZONE and \
@@ -166,7 +166,7 @@ def in_bounds(x, y):
            x + y > UPPER_LEFT_DANGERZONE
 
 
-def measure_shape(screenshot: np.array, x: int, y: int, shape: set[(int, int)]):
+def measure_shape(screenshot: np.ndarray, x: int, y: int, shape: set[(int, int)]):
     if X_START <= x < X_END and Y_START <= y < Y_END and screenshot[y, x] >= WHITE_THRESHOLD and (x, y) not in shape:
         shape.add((x, y))
         measure_shape(screenshot=screenshot, x=x + 1, y=y, shape=shape)
@@ -176,7 +176,7 @@ def measure_shape(screenshot: np.array, x: int, y: int, shape: set[(int, int)]):
     return shape
 
 
-def check_pixel_for_shape(screenshot: np.array, x: int, y: int, shapes: list[set[(int, int)]]):
+def check_pixel_for_shape(screenshot: np.ndarray, x: int, y: int, shapes: list[set[(int, int)]]):
     if X_START <= x < X_END and Y_START <= y < Y_END and screenshot[y, x] >= WHITE_THRESHOLD:
         known = False
         for shape in shapes:
@@ -212,7 +212,7 @@ def find_number_information(shapes: list[set[(int, int)]], rotation_correction: 
     return number, connectivity_type
 
 
-def find_cell_number(screenshot: np.array, x: int, y: int, cell_colour: int):
+def find_cell_number(screenshot: np.ndarray, x: int, y: int, cell_colour: int):
     shapes = list()
     x_temp = x
     while screenshot[y, x_temp] >= cell_colour:
@@ -227,7 +227,7 @@ def find_cell_number(screenshot: np.array, x: int, y: int, cell_colour: int):
     return find_number_information(shapes=shapes)
 
 
-def identify_cell(screenshot: np.array, x: int, y: int):
+def identify_cell(screenshot: np.ndarray, x: int, y: int):
     if screenshot[y, x] <= BACKGROUND_THRESHOLD:
         return None
 
@@ -247,7 +247,7 @@ def identify_cell(screenshot: np.array, x: int, y: int):
     return Cell(cell_type=cell_type, connectivity_type=connectivity_type, number=number)
 
 
-def init_cells(screenshot: np.array, level: Level):
+def init_cells(screenshot: np.ndarray, level: Level):
     cells = np.zeros((level.rows, level.cols), Cell)
     orange_cells = 0
     x = level.left
@@ -256,9 +256,6 @@ def init_cells(screenshot: np.array, level: Level):
         if col % 2 == 1:
             y += level.vertical_half_distance
         for row in range(level.rows):
-            # TODO: remove
-            # pag.moveTo(x, y)
-            # sleep(0.5)
             if (x < X_SAFE_LIMIT or y > Y_SAFE_START) and x + y > UPPER_LEFT_DANGERZONE:
                 cells[row, col] = identify_cell(screenshot=screenshot, x=x, y=y)
                 if cells[row, col] is not None and cells[row, col].cell_type == CellType.ORANGE:
@@ -295,7 +292,8 @@ def find_direction(x: int, y: int, shapes: list[set[(int, int)]], potential_dire
     return direction
 
 
-def check_line(screenshot: np.array, level: Level, x: int, y: int, row: int, col: int, potential_directions: list[LineDirection]):
+def check_line(screenshot: np.ndarray, level: Level, x: int, y: int, row: int, col: int,
+               potential_directions: list[LineDirection]):
     search_range = int(level.vertical_half_distance * 0.7)
     shapes = list()
     for y_search in range(y - search_range, y + search_range):
@@ -328,7 +326,7 @@ def check_line(screenshot: np.array, level: Level, x: int, y: int, row: int, col
                 direction=line_direction)
 
 
-def init_lines(screenshot: np.array, level: Level):
+def init_lines(screenshot: np.ndarray, level: Level):
     lines = list()
     for row in range(-1, level.rows + 1):
         for col in range(-1, level.cols + 1):
@@ -371,7 +369,7 @@ def init_lines(screenshot: np.array, level: Level):
     return lines
 
 
-def find_blue_remaining(screenshot: np.array):
+def find_blue_remaining(screenshot: np.ndarray):
     x = X_END
     y = Y_START
     while screenshot[y, x] != BLUE:
@@ -401,7 +399,7 @@ def measure_cell(screenshot: np.ndarray, x: int, y: int):
     return HORIZONTAL_DISTANCE, VERTICAL_HALF_DISTANCE
 
 
-def find_dimensions(screenshot: np.array):
+def find_dimensions(screenshot: np.ndarray):
     left, _ = find_left_edge(screenshot)
     right, _ = find_right_edge(screenshot)
     top_x, top = find_top_edge(screenshot)

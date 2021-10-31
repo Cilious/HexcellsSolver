@@ -271,7 +271,7 @@ def train(model, num_epochs: int = NUM_EPOCHS):
     return losses
 
 
-def classify_digit(digit: np.array):
+def classify_digit(digit: np.ndarray):
     input = torch.from_numpy(np.expand_dims(digit.astype(np.float), 0)).float()
     target = net.forward(input)
     result = CLASS_NAMES[torch.argmax(target)]
