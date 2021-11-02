@@ -3,6 +3,8 @@ import numpy as np
 from pysat.solvers import Minisat22
 from itertools import combinations
 
+from time import sleep
+
 from representation import Level, CellType, Line, ConnectivityType
 from level_parser import identify_cell
 
@@ -87,6 +89,7 @@ def apply_solutions(level: Level, blue_cells: list[(int, int)], gray_cells: list
         pag.click(x=x, y=y, button=GRAY_CLICK)
 
     if len(blue_cells) + len(gray_cells) < level.orange_cells:  # TODO: look into problem with success screen
+        sleep(1)
         screenshot = np.array(pag.screenshot().convert('L'))
         for blue_cell in blue_cells:
             x, y = level.cell_coordinates(row=blue_cell[0], col=blue_cell[1])
@@ -496,8 +499,10 @@ def find_solutions(level: Level, informative_cells: dict[(int, int), list[list[(
 
     if len(blue_cells) == 0 and len(gray_cells) == 0:
         b, g, _ = find_total_remaining_solutions(level=level, solver=ms)
-    blue_cells += b
-    gray_cells += g
+        if len(b) == len(g) == 0:
+            b, g = find_sat_solutions(solver=ms, cell_dependencies=cell_dependencies)
+    blue_cells = b
+    gray_cells = g
 
     blue_cells = [tuple(c) for c in np.unique(blue_cells, axis=0)]
     gray_cells = [tuple(c) for c in np.unique(gray_cells, axis=0)]
