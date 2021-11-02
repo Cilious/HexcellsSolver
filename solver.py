@@ -60,6 +60,7 @@ def get_gray_cell_neighbours(level: Level, row: int, col: int):
 
     neighbours: list[list[(int, int)]] = list()
     section = list()
+    first_is_none = False
     for cell_index in neighbour_indices[col % 2]:
         cell_row = row + cell_index[0]
         cell_col = col + cell_index[1]
@@ -67,11 +68,14 @@ def get_gray_cell_neighbours(level: Level, row: int, col: int):
                 level.cells[cell_row, cell_col] is not None and \
                 level.cells[cell_row, cell_col].cell_type != CellType.GRAY:
             section.append((cell_row, cell_col))
-        elif len(section) > 0:
-            neighbours.append(section)
-            section = list()
+        else:
+            if len(section) > 0:
+                neighbours.append(section)
+                section = list()
+            if cell_index == neighbour_indices[col % 2][0]:
+                first_is_none = True
     if len(section) > 0:
-        if len(neighbours) == 0:
+        if len(neighbours) == 0 or first_is_none:
             neighbours.append(section)
         else:
             neighbours[0] = section + neighbours[0]
