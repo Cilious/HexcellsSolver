@@ -80,7 +80,7 @@ class Level:
 
     def __str__(self):
         meta_data = f"left={self.left}, right={self.right}, top={self.top}, bot={self.bot}, rows={self.rows}, " \
-                    f"cols={self.cols}, remaining={self.blue_remaining}, gray_cells={self.orange_cells}\n"
+                    f"cols={self.cols}, remaining={self.blue_remaining}, orange_cells={self.orange_cells}\n"
 
         cells = ""
         for row in range(self.rows):

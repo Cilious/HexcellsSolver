@@ -503,8 +503,8 @@ def find_solutions(level: Level, informative_cells: dict[(int, int), list[list[(
         b, g, _ = find_total_remaining_solutions(level=level, solver=ms, cell_dependencies=cell_dependencies)
         if len(b) == len(g) == 0:
             b, g = find_sat_solutions(solver=ms, cell_dependencies=cell_dependencies)
-    blue_cells = b
-    gray_cells = g
+        blue_cells = b
+        gray_cells = g
 
     blue_cells = [tuple(c) for c in np.unique(blue_cells, axis=0)]
     gray_cells = [tuple(c) for c in np.unique(gray_cells, axis=0)]
