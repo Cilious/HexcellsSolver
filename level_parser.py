@@ -221,13 +221,14 @@ def find_cell_number(screenshot: np.ndarray, x: int, y: int, cell_colour: int):
     while screenshot[y, x_temp] >= cell_colour:
         # The two lines signaling that blue cells are disjointed are slightly offset downwards
         # TODO: find more elegant solution
-        for y_temp in range(y, y + 5):
+        for y_temp in range(y, y + 3):
             check_pixel_for_shape(screenshot=screenshot, x=x_temp, y=y_temp, shapes=shapes)
         x_temp += 1
     return find_number_information(shapes=shapes)
 
 
 def identify_cell(screenshot: np.ndarray, x: int, y: int):
+    x, y = center(screenshot=screenshot, x=x, y=y)
     if screenshot[y, x] <= BACKGROUND_THRESHOLD:
         return None
 
