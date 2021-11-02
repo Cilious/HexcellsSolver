@@ -93,7 +93,7 @@ def apply_solutions(level: Level, blue_cells: list[(int, int)], gray_cells: list
         pag.click(x=x, y=y, button=GRAY_CLICK)
 
     if len(blue_cells) + len(gray_cells) < level.orange_cells:  # TODO: look into problem with success screen
-        sleep(1)
+        sleep(1.5)
         screenshot = np.array(pag.screenshot().convert('L'))
         for blue_cell in blue_cells:
             x, y = level.cell_coordinates(row=blue_cell[0], col=blue_cell[1])
@@ -451,7 +451,7 @@ def find_solutions(level: Level, informative_cells: dict[(int, int), list[list[(
                         neighbours = get_gray_cell_neighbours(level=level, row=cell[0], col=cell[1])
                     if len(neighbours) > 0:
                         informative_cells[cell] = neighbours
-                    else:
+                    elif cell in informative_cells:
                         del informative_cells[cell]
                     break
 
@@ -467,7 +467,7 @@ def find_solutions(level: Level, informative_cells: dict[(int, int), list[list[(
                                                        solver=ms, cell_dependencies=cell_dependencies)
         blue_cells += b
         gray_cells += g
-        if done:
+        if done and cell in informative_cells:
             del informative_cells[cell]
 
     for line, cells in informative_lines.copy().items():
@@ -477,7 +477,7 @@ def find_solutions(level: Level, informative_cells: dict[(int, int), list[list[(
                     cells = trace_line(level=level, line=line)
                     if len(cells) > 0:
                         informative_lines[line] = cells
-                    else:
+                    elif line in informative_lines:
                         del informative_lines[line]
                     break
 
@@ -492,7 +492,7 @@ def find_solutions(level: Level, informative_cells: dict[(int, int), list[list[(
                                                   solver=ms, cell_dependencies=cell_dependencies)
         blue_cells += b
         gray_cells += g
-        if done:
+        if done and line in informative_lines:
             del informative_lines[line]
 
     for cell in blue_cells + gray_cells:
