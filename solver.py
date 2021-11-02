@@ -229,7 +229,7 @@ def find_disjointed_solutions(level: Level, line_or_cell, cells: list[list[(int,
             dangerous_sections = [blue_section]
         for section_index in dangerous_sections:
             section = cells[section_index]
-            for start in range(len(section) - line_or_cell.number):
+            for start in range(len(section) - line_or_cell.number + 1):
                 clause = list()
                 for cell in section[start:start + line_or_cell.number]:
                     if level.cells[cell[0], cell[1]].cell_type == CellType.ORANGE:
