@@ -127,7 +127,7 @@ def n_out_of_list(cells: list[(int, int)], n: int):
     cell_codes = [to_cell_code(c) for c in cells]
     positive_subsets = [list(clause) for clause in combinations(cell_codes, len(cell_codes) - n + 1)]
     if n * 2 == len(cell_codes):
-        negative_subsets = [[- c for c in subset] for subset in positive_subsets]
+        negative_subsets = [[-c for c in subset] for subset in positive_subsets]
     else:
         negative_subsets = [[-c for c in clause] for clause in combinations(cell_codes, n + 1)]
     return negative_subsets + positive_subsets
@@ -143,7 +143,7 @@ def to_cell_code(row_col: (int, int)):
 
 def find_sat_solutions(solver: Minisat22, cell_dependencies: dict[(int, int), int]):
     if not solver.solve():
-        raise NoSolutionFoundException("Contradiction in board")  # 11873979
+        raise NoSolutionFoundException("Contradiction in board.")  # 11873979
 
     blue_cells = list()
     gray_cells = list()
@@ -170,12 +170,12 @@ def find_sat_solutions(solver: Minisat22, cell_dependencies: dict[(int, int), in
     return blue_cells, gray_cells
 
 
-def find_total_remaining_solutions(level: Level, solver: Minisat22):
+def find_total_remaining_solutions(level: Level, solver: Minisat22, cell_dependencies: dict[(int, int), int]):
     orange_cells = list()
     for row in range(level.rows):
         for col in range(level.cols):
             if level.cells[row, col] is not None and level.cells[row, col].cell_type == CellType.ORANGE:
-                orange_cells.append([row, col])
+                orange_cells.append((row, col))
 
     if level.orange_cells == level.blue_remaining:
         return orange_cells, [], True
@@ -183,6 +183,8 @@ def find_total_remaining_solutions(level: Level, solver: Minisat22):
         return [], orange_cells, True
 
     solver.append_formula(n_out_of_list(orange_cells, level.blue_remaining))
+    for cell in orange_cells:
+        cell_dependencies[cell] = cell_dependencies.get(cell, 0) + 1
 
     return [], [], False
 
@@ -498,7 +500,7 @@ def find_solutions(level: Level, informative_cells: dict[(int, int), list[list[(
     gray_cells += g
 
     if len(blue_cells) == 0 and len(gray_cells) == 0:
-        b, g, _ = find_total_remaining_solutions(level=level, solver=ms)
+        b, g, _ = find_total_remaining_solutions(level=level, solver=ms, cell_dependencies=cell_dependencies)
         if len(b) == len(g) == 0:
             b, g = find_sat_solutions(solver=ms, cell_dependencies=cell_dependencies)
     blue_cells = b
@@ -541,7 +543,7 @@ def solve(level: Level):
                                                 informative_cells=informative_cells,
                                                 informative_lines=informative_lines)
         if len(blue_cells) == 0 and len(gray_cells) == 0:
-            raise NoSolutionFoundException("Not enough information")
+            raise NoSolutionFoundException("Not enough information.")
 
         apply_solutions(level=level, blue_cells=blue_cells, gray_cells=gray_cells, informative_cells=informative_cells)
 
