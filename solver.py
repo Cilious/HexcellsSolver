@@ -263,6 +263,7 @@ def find_connected_solutions(level: Level, line_or_cell, cells: list[list[(int, 
                     known_blues.append(cell_index)
         if len(known_blues) > 0:
             gray_sections = list(range(section_index)) + list(range(section_index + 1, len(cells)))
+            break
 
     for section_index in reversed(gray_sections):
         gray_cells += cells[section_index]
