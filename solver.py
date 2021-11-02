@@ -275,7 +275,7 @@ def find_connected_solutions(level: Level, line_or_cell, cells: list[list[(int, 
         section = cells[0]
         blue_start = min(known_blues[0], len(section) - line_or_cell.number)
         blue_end = max(known_blues[len(known_blues) - 1], line_or_cell.number - 1)
-        for cell in section[blue_start: blue_end]:
+        for cell in section[blue_start: blue_end + 1]:
             if level.cells[cell[0], cell[1]].cell_type == CellType.ORANGE:
                 blue_cells.append(cell)
                 solver.add_clause([to_cell_code(cell)])
@@ -302,10 +302,10 @@ def find_connected_solutions(level: Level, line_or_cell, cells: list[list[(int, 
                     clause.append(-to_cell_code(cell))
                 clauses.append(clause)
             solver.append_formula(distribute(clauses=clauses))
-            for cell in section[0:blue_end - line_or_cell.number + 1]:
+            for cell in section[:blue_end - line_or_cell.number + 1]:
                 gray_cells.append(cell)
                 solver.add_clause([-to_cell_code(cell)])
-            for cell in section[blue_start + line_or_cell.number + 1:len(section)]:
+            for cell in section[blue_start + line_or_cell.number:len(section)]:
                 gray_cells.append(cell)
                 solver.add_clause([-to_cell_code(cell)])
             for cell in possible_blues:
@@ -319,8 +319,12 @@ def find_connected_solutions(level: Level, line_or_cell, cells: list[list[(int, 
                     clause_template.append(-to_cell_code(cell))
             for start in range(len(section) - line_or_cell.number + 1):
                 clause = clause_template.copy()
+                for cell in section[:start]:
+                    clause.append(-to_cell_code(cell))
                 for cell in section[start:start + line_or_cell.number]:
                     clause.append(to_cell_code(cell))
+                for cell in section[start + line_or_cell.number:]:
+                    clause.append(-to_cell_code(cell))
                 clauses.append(clause)
             for cell in section:
                 cell_dependencies[cell] = cell_dependencies.get(cell, 0) + 1
