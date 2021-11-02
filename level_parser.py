@@ -436,9 +436,10 @@ def open_hexcells():
     pag.click(pag.center(hexcells_location))
 
 
-def grab_level(region=None):
+def grab_level(opened=False, region=None):
     try:
-        open_hexcells()
+        if not opened:
+            open_hexcells()
 
         pic = pag.screenshot(region=region).convert('L')
         # TODO: remove
@@ -449,9 +450,9 @@ def grab_level(region=None):
         exit(1)
 
 
-def parse(image=None):
+def parse(opened: bool = False, image=None):
     if image is None:
-        screenshot = grab_level()
+        screenshot = grab_level(opened=opened)
     else:
         screenshot = np.array(Image.open(image))
     left, right, top, bot, rows, cols, vertical_half_distance, horizontal_distance = find_dimensions(
